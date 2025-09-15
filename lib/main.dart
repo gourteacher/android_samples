@@ -56,6 +56,20 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   double _counter = 0;
+  bool isChecked = false;
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -64,8 +78,9 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      if ( _counter < 99.0)
+      if ( _counter < 99.0) {
         _counter++;
+      }
     });
   }
 
@@ -73,6 +88,13 @@ class _MyHomePageState extends State<MyHomePage> {
   {
     setState(() {
       _counter = value;
+    });
+  }
+
+  void resetCounter()
+  {
+    setState(() {
+      _counter = 0;
     });
   }
 
@@ -115,7 +137,23 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             const Text(
               'You have pushed the button this many times:',
-              style: TextStyle(fontSize: 40, color: Colors.blue, ) ,
+            ),
+            ElevatedButton(
+              onPressed: resetCounter,
+              child:Image.asset("images/algonquin.jpg", width: 200, height:200),
+            ),
+            TextField(controller: _controller,
+                decoration: InputDecoration(
+                    hintText:"Type here",
+                    border: OutlineInputBorder(),
+                    labelText: "First name"
+                )
+            ),
+            Checkbox(
+                value: isChecked, onChanged: (newValue) { setState( () { isChecked = newValue !; }); }
+            ),
+            Switch(
+                value:isChecked, onChanged: (newValue) {  setState(() { isChecked = newValue !; }); }
             ),
             Text(
               '$_counter',

@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter Example',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -29,8 +29,9 @@ class MyApp extends StatelessWidget {
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Example Home Page'),
     );
   }
 }
@@ -54,7 +55,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  double _counter = 0;
 
   void _incrementCounter() {
     setState(() {
@@ -63,7 +64,15 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
+      if ( _counter < 99.0)
+        _counter++;
+    });
+  }
+
+  void setNewValue(double value)
+  {
+    setState(() {
+      _counter = value;
     });
   }
 
@@ -104,11 +113,15 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text('You have pushed the button this many times:'),
+            const Text(
+              'You have pushed the button this many times:',
+              style: TextStyle(fontSize: 40, color: Colors.blue, ) ,
+            ),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            Slider(value: _counter, onChanged: setNewValue, min: 0, max: 100) ,
           ],
         ),
       ),

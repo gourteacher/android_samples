@@ -11,30 +11,41 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Week 4 - Samples',
+      title: 'Week 4 Samples',
       theme: ThemeData(
         // This is the theme of your application.
+        //
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Week 4 - Alert Dialog'),
+      home: const MyHomePage(title: 'Week 4 - Snackbar'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
   final String title;
 
   @override
-  State<MyHomePage> createState() => MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> {
+  late var snackBar;
 
   @override
   void initState() {
     super.initState();
+    //showSnackBar();
   }
 
   @override
@@ -42,76 +53,55 @@ class MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void processOK(BuildContext context){
-    Navigator.of(context).pop();
-    var snackBar = SnackBar(content: Text('OK Clicked'));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  void processCancel(BuildContext context){
-    Navigator.of(context).pop();
-    var snackBar = SnackBar(content: Text('Cancel Clicked'));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  AlertDialog displayDialog(BuildContext context) {
-
-    return AlertDialog(
-      title: const Text('AlertDialog'),
-      content: const Text('Press OK or Cancel to continue ...'),
-      actions: <Widget>[
-        TextButton(
-          onPressed: ()  {
-            processCancel(context);
-          },
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            processOK(context);
-          },
-          child: Container(
-            color: Colors.blueAccent,
-            padding: const EdgeInsets.all(14),
-            child: const Text("OK"),
-          ),
-        ),
-      ],
-    );
+  void showSnackBar() {
+    setState(() {
+      snackBar = SnackBar(
+          content: Text('This is a SnackBar!'),
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              // Some code to undo the change.
+            },
+          ));
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // This method is rerun every time setState is called.
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Column(
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: ElevatedButton(
-                onPressed: () =>
-                    showDialog<String>(
-                        context: context,
-                        builder: (BuildContext context) => displayDialog(context)
-                    ),
-                child: Text ('Click Me',
-                  style: TextStyle(fontSize: 30, color: Colors.blueAccent),
-                ),
-              ),
+            ElevatedButton(
+              onPressed: showSnackBar,
+              child: const Text('Show SnackBar'),
             ),
           ],
         ),
       ),
     );
   }
+
 }

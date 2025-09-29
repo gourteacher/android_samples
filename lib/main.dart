@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -11,30 +14,33 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Week 4 - Samples',
+      title: 'CST2335 Samples',
       theme: ThemeData(
         // This is the theme of your application.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Week 4 - Alert Dialog'),
+      home: const MyHomePage(title: 'week 4 - Shared Prefs'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
+
   final String title;
 
   @override
-  State<MyHomePage> createState() => MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> {
+  var courseCode='';
 
   @override
   void initState() {
     super.initState();
+    loadPrefs();
   }
 
   @override
@@ -42,52 +48,36 @@ class MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void processOK(BuildContext context){
-    Navigator.of(context).pop();
-    var snackBar = SnackBar(content: Text('OK Clicked'));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
+  Future<void> loadPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
 
-  void processCancel(BuildContext context){
-    Navigator.of(context).pop();
-    var snackBar = SnackBar(content: Text('Cancel Clicked'));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  AlertDialog displayDialog(BuildContext context) {
-
-    return AlertDialog(
-      title: const Text('AlertDialog'),
-      content: const Text('Press OK or Cancel to continue ...'),
-      actions: <Widget>[
-        TextButton(
-          onPressed: ()  {
-            processCancel(context);
-          },
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            processOK(context);
-          },
-          child: Container(
-            color: Colors.blueAccent,
-            padding: const EdgeInsets.all(14),
-            child: const Text("OK"),
-          ),
-        ),
-      ],
+    courseCode = prefs.getString('Course') ?? '';
+    var snackBar = SnackBar(
+      content: Text('Course loaded $courseCode'),
+      duration: Duration(seconds: 3),
     );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  Future<void> savePrefs(BuildContext context) async {
+    SharedPreferences.getInstance().then( (prefs) {
+      prefs.setString('Course', 'CST2335');
+      var snackBar = SnackBar(
+        content: Text('Course saved'),
+        duration: Duration(seconds: 3),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+
     return Scaffold(
       appBar: AppBar(
+
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+
         title: Text(widget.title),
       ),
       body: Center(
@@ -99,18 +89,15 @@ class MyHomePageState extends State<MyHomePage> {
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: ElevatedButton(
-                onPressed: () =>
-                    showDialog<String>(
-                        context: context,
-                        builder: (BuildContext context) => displayDialog(context)
-                    ),
-                child: Text ('Click Me',
+                onPressed: () => savePrefs(context),
+                child: Text ('Save',
                   style: TextStyle(fontSize: 30, color: Colors.blueAccent),
                 ),
-              ),
+              ), // This trailing comma makes auto-formatting nicer for build methods.
             ),
           ],
         ),
+        //
       ),
     );
   }

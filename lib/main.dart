@@ -62,18 +62,19 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _launchUrl() async {
     var urlString = _controller.text;
     final Uri _url = Uri.parse(urlString);
-
-    if (!await launchUrl(_url ) ) {
-      throw 'Could not launch $_url';
+    if (!await launchUrl(_url)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Could not launch $urlString"),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-
         backgroundColor: Theme
             .of(context)
             .colorScheme
@@ -99,8 +100,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: ElevatedButton(onPressed: () {
-                Navigator.pushNamed(context, '/Third');
+              child: ElevatedButton(onPressed: () async {
+                var result = await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) {
+                    return OtherPage();
+                  }),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Returned from second page: $result"),
+                  ),
+                );
+
               }, //Lambda, or anonymous function
                   child: Text('Go to third page')),
             ),

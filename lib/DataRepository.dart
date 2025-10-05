@@ -1,6 +1,6 @@
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
-
 class DataRepository {
+
   static String firstName = "";
   static String emailAddress ="";
   static String lastName = "";
@@ -13,7 +13,6 @@ class DataRepository {
   }
 
   static void saveData(){
-    EncryptedSharedPreferences prefs = EncryptedSharedPreferences();
 
   }
 }

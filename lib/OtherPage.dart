@@ -16,7 +16,10 @@ class OtherPageState extends State<StatefulWidget>{
         Column( mainAxisAlignment: MainAxisAlignment.center,
           children: [
             OutlinedButton(child:  Text("Welcome back " + DataRepository.login ),
-            onPressed: () { Navigator.pop(context);   }),//return to previous
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            }
+            ),//return to previous
           ],
         )
       )

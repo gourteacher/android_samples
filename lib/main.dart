@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'DataRepository.dart';
+import 'OtherPage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,13 +14,22 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Week 4 - Samples',
+      routes:  {
+        '/Main'   :   (context) => MyHomePage(title:"Week 5 - Routes"),
+        '/Second' :   (context) { return OtherPage(); } ,
+        '/Third'  :   (context) { return OtherPage(); }
+      },
+
+      title: 'Android Samples',
       theme: ThemeData(
-        // This is the theme of your application.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Week 4 - Alert Dialog'),
+
+      //Notice  that we are not using the home parameter here
+      //Instead, we are using the initialRoute parameter
+      //home: const MyHomePage(title: 'Week 5 - Routes'),
+      initialRoute: '/Main',
     );
   }
 }
@@ -27,67 +39,47 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => MyHomePageState();
+  State<MyHomePage> createState() { return _MyHomePageState(); }
 }
 
-class MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> {
+  late TextEditingController _controller; //late - Constructor in initState()
+  var isChecked = false;
 
-  @override
+  @override //same as in java
   void initState() {
-    super.initState();
+    super.initState(); //call the parent initState()
+    _controller = TextEditingController(); //our late constructor
+    DataRepository.loadData();//asynchronous, but certain to finish before going to second page
   }
 
   @override
   void dispose() {
     super.dispose();
+    _controller.dispose(); // clean up memory
   }
 
-  void processOK(BuildContext context){
-    Navigator.of(context).pop();
-    var snackBar = SnackBar(content: Text('OK Clicked'));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
+  Future<void> _launchUrl() async {
+    var urlString = _controller.text;
+    final Uri _url = Uri.parse(urlString);
 
-  void processCancel(BuildContext context){
-    Navigator.of(context).pop();
-    var snackBar = SnackBar(content: Text('Cancel Clicked'));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  AlertDialog displayDialog(BuildContext context) {
-
-    return AlertDialog(
-      title: const Text('AlertDialog'),
-      content: const Text('Press OK or Cancel to continue ...'),
-      actions: <Widget>[
-        TextButton(
-          onPressed: ()  {
-            processCancel(context);
-          },
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            processOK(context);
-          },
-          child: Container(
-            color: Colors.blueAccent,
-            padding: const EdgeInsets.all(14),
-            child: const Text("OK"),
-          ),
-        ),
-      ],
-    );
+    if (!await launchUrl(_url ) ) {
+      throw 'Could not launch $_url';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+
+        backgroundColor: Theme
+            .of(context)
+            .colorScheme
+            .inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
@@ -96,22 +88,46 @@ class MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+
             Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.all(20.0),
+              child: ElevatedButton(onPressed: () {
+                Navigator.pushNamed(context, '/Second');
+              }, //Lambda, or anonymous function
+                  child: Text('Go to second page')),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: ElevatedButton(onPressed: () {
+                Navigator.pushNamed(context, '/Third');
+              }, //Lambda, or anonymous function
+                  child: Text('Go to third page')),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  hintText: "Enter URL to launch",
+                  border: OutlineInputBorder(),
+                  label: Text('URL'),
+                )
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20.0),
               child: ElevatedButton(
-                onPressed: () =>
-                    showDialog<String>(
-                        context: context,
-                        builder: (BuildContext context) => displayDialog(context)
-                    ),
-                child: Text ('Click Me',
-                  style: TextStyle(fontSize: 30, color: Colors.blueAccent),
-                ),
+                  onPressed: () => _launchUrl(),
+                  child: Text('Go to URL')
               ),
             ),
           ],
         ),
-      ),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+

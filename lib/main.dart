@@ -45,12 +45,24 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late TextEditingController _controller; //late - Constructor in initState()
   var isChecked = false;
+  bool _hasCallSupport = false;
+
 
   @override //same as in java
   void initState() {
     super.initState(); //call the parent initState()
     _controller = TextEditingController(); //our late constructor
     DataRepository.loadData();//asynchronous, but certain to finish before going to second page
+
+    // Check if if we can Phone calls
+    // Note: This does not check whether the device actually can make phone calls.
+    // It only checks whether there is a app registered for the 'tel:' scheme.
+    // Example from https://pub.dev/packages/url_launcher
+    canLaunchUrl(Uri(scheme: 'tel', path: '123')).then((bool result) {
+      setState(() {
+        _hasCallSupport = result;
+      });
+    });
   }
 
   @override
@@ -70,6 +82,8 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +147,14 @@ class _MyHomePageState extends State<MyHomePage> {
               child: ElevatedButton(
                   onPressed: () => _launchUrl(),
                   child: Text('Go to URL')
+              ),
+            ),
+            // Example below from https://pub.dev/packages/url_launcher
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: ElevatedButton(
+                onPressed: _hasCallSupport ? () => launchUrl(Uri(scheme: 'tel', path: '123')) : null,
+                child: Text('Make a phone call'),
               ),
             ),
           ],

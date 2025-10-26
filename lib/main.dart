@@ -1,6 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+
+//  Week 6 - ListView with ListTile
 
 void main() {
   runApp(const MyApp());
@@ -13,13 +13,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Android Samples',
+      title: 'Android Week 6',
       theme: ThemeData(
-        // This is the theme of your application.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Week 6 - ListView'),
+      home: const MyHomePage(title: 'Week 6 - ListView with ListTile'),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -33,80 +33,44 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var wordsArray = <String>[ ];
-
-  @override //same as in java
-  void initState() {
-    super.initState(); //call the parent initState()
-  }
-
-  @override
-  void dispose()
-  {
-    super.dispose();
-  }
-
+  var myCities = <String>[
+    "Toronto",
+    "Montreal",
+    "Vancouver",
+    "Calgary",
+    "Edmonton",
+    "Ottawa",
+    "Winnipeg",
+    "Quebec City",
+    "Hamilton",
+    "Kitchener"
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar( backgroundColor: Theme.of(context).colorScheme.inversePrimary, title: Text(widget.title)),
-        body: ListPage(),
-        floatingActionButton:
-        FloatingActionButton(onPressed: addItem,
-            tooltip: 'Add Item',
-            child: const Icon(Icons.add)
-        )
-    );
-  }
-
-  void addItem() {
-    setState(() {
-      wordsArray.add("Item " + " ${wordsArray.length+1}");
-    });
-  }
-
-  Widget ListPage(){
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Expanded(child:
-          ListView.builder(
-              itemCount:wordsArray.length,
-              itemBuilder: (context, rowNum) { return
-                Row( mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children:[
-                      Text("${1+rowNum}: ${wordsArray[rowNum]} "),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            wordsArray[rowNum] = wordsArray[rowNum].toUpperCase();
-                          });
-                        },
-                        child: const Icon(Icons.arrow_upward),
-                      ),
-                      GestureDetector(
-                        onDoubleTap: () {
-                          setState(() {
-                            wordsArray[rowNum] = wordsArray[rowNum].toLowerCase();
-                          });
-                        },
-                        child: const Icon(Icons.arrow_downward),
-                      ),
-                      GestureDetector(
-                        onLongPress: () {
-                          setState(() {
-                            wordsArray.removeAt(rowNum);
-                          });
-                        },
-                        child: const Icon(Icons.delete),
-                      ),
-                    ]
-                );
-              }
-          ),
-          ),
-        ],
+      appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.title)),
+      body: ListView.builder(
+        itemCount: myCities.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(myCities[index]),
+            subtitle: Text("Description ..."),
+            leading: const Icon(Icons.location_on, color: Colors.grey),
+            onTap: () {
+              print(myCities[index]);
+            },
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  myCities.removeAt(index);
+                });
+              },
+            ),
+          );
+        },
       ),
     );
   }

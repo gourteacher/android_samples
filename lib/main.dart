@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Android Samples',
+      title: 'Samples',
       theme: ThemeData(
         // This is the theme of your application.
         colorScheme: ColorScheme.fromSeed(
@@ -24,13 +24,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: MyHomePage(title: 'Using a Database'),
+      home: MyHomePage(title: 'Tablet and Phone Layout'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
+
   final String title;
 
   @override
@@ -40,7 +41,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<ToDoItem> todoList = <ToDoItem>[];
   late TextEditingController _inputController;
-  late ToDoDAO taskDAO;
+  late ToDoDAO dao;
+  ToDoItem? selectedItem = null;
+  var isChecked = false;
 
   @override //same as in java
   void initState() {
@@ -50,12 +53,12 @@ class _MyHomePageState extends State<MyHomePage> {
     $FloorToDoDatabase
         .databaseBuilder('todo_database.db')
         .build()
-        .then((database) async { //Note the use of async here
-      taskDAO = database.toDoDAO;
+        .then((database) async {
+      dao = database.toDoDAO;
       //get Items from database:
-      var it = await taskDAO.getAllItems();
+      var it = await dao.getAllItems();
       setState(() {
-        todoList = it;
+        todoList = it; //Future<> , asynchronous
       });
     });
   }
@@ -70,23 +73,24 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            backgroundColor: Theme
+                .of(context)
+                .colorScheme
+                .inversePrimary,
             title: Text(widget.title)),
-        body: listPage(),
+        body: reactiveLayout(),
         floatingActionButton: FloatingActionButton(
-            onPressed: addTask,
-            tooltip: 'Add a Task',
+            onPressed: addItem,
+            tooltip: 'Add Item',
             child: const Icon(Icons.add)));
   }
 
-  void addTask() {
+  void addItem() {
     if (_inputController.text.isNotEmpty) {
       setState(() {
-        // Use this if Primary Key is not auto-generated
-        //ToDoItem(ToDoItem.ID++, _inputController.text);
-        var newItem = ToDoItem(null, _inputController.text);
+        var newItem = ToDoItem(ToDoItem.ID++, _inputController.text);
         todoList.add(newItem);
-        taskDAO.insertItem(newItem);
+        dao.insertItem(newItem);
         _inputController.clear();
       });
     } else {
@@ -95,49 +99,100 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Widget listPage() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              const SizedBox(width: 20),
-              Expanded(
-                child: TextField(
-                  controller: _inputController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter a ToDo Item',
-                    border: OutlineInputBorder(),
+  Widget reactiveLayout() {
+    var size = MediaQuery
+        .sizeOf(context);
+    var height = size.height;
+    var width = size.width;
 
-                  ),
-                  keyboardType: TextInputType.text,
-                  textAlign: TextAlign.start,
-                ),
-              ),
-              const SizedBox(width: 20),
-            ],
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: todoList.length,
-              itemBuilder: (context, rowNum) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const SizedBox(width: 20),
-                    //Text("${todoList[rowNum]} "),
-                    Text(
-                      "${todoList[rowNum].todoItem}",
-                      style: TextStyle(fontSize: 24.0),
-                    ),
-                  ]);
-              }),
-          ),
-        ],
-      ),
-    );
+    if ((width > height) && (width > 720)) //landscape// {
+     {
+      return Row(children: [
+        Expanded(flex: 1, child: toDoList()),
+        Expanded(flex: 2, child: detailsPage())
+      ]);
   }
+
+  else //portrait mode
+  {
+    if (selectedItem == null)
+      return toDoList();
+    else { //something is selected
+      return detailsPage();
+    }
+  }
+}
+
+Widget detailsPage() {
+  TextStyle mystyle = TextStyle(fontSize: 40.0);
+
+  return Column(children: [
+
+    if(selectedItem == null)
+      Text("Please select something from the list", style: mystyle)
+    else
+      Text("You selected:" + selectedItem!.todoItem, style: mystyle)
+    //
+    ,
+    ElevatedButton(child: Text("Ok"), onPressed: () {
+      //update GUI:
+      setState(() {
+        selectedItem = null; //clear the selection
+      });
+    })
+
+  ]);
+}
+
+Widget toDoList() {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Row(children: [
+          Flexible(child:
+          TextField(controller: _inputController,
+            decoration: InputDecoration(
+              hintText: "Type a task here",
+              labelText: "Add a task",
+              border: OutlineInputBorder(),
+            ),
+          )),
+
+          ElevatedButton(onPressed: () {
+            //what was typed is:
+            var input = _inputController.value.text;
+            //generate UNIQUE ids
+            var todoItem = ToDoItem(ToDoItem.ID++, input);
+            dao.insertItem(todoItem);
+
+            setState(() { //redraw the GUI
+
+              todoList.add(todoItem); //add the item to the LIST
+
+              _inputController.text = ""; //reset the textField
+            });
+          }, //Lambda, or anonymous function
+            child: Text("Add ToDO"),)
+        ],),
+        Flexible(child:
+        ListView.builder(
+            itemCount: todoList.length,
+            itemBuilder: (ctx, rowNum) {
+              return
+                GestureDetector(
+                    onTap: () {
+                      setState(() { //redraw the GUI:
+                        selectedItem = todoList[rowNum];
+                      });
+                    },
+                    child:
+                    Text("Item $rowNum = ${todoList[rowNum].todoItem }",
+                      style: TextStyle(fontSize: 30.0),));
+            }))
+      ],
+    ),
+  );
+} //end of reactiveLayout()
+
 }

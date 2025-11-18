@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: MyHomePage(title: 'Tablet and Phone Layout'),
+      home: MyHomePage(title: 'Tablet and Phone Layout TESTING'),
     );
   }
 }
@@ -43,7 +43,6 @@ class _MyHomePageState extends State<MyHomePage> {
   late TextEditingController _inputController;
   late ToDoDAO dao;
   ToDoItem? selectedItem = null;
-  var isChecked = false;
 
   @override //same as in java
   void initState() {

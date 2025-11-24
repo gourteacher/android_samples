@@ -120,9 +120,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
@@ -142,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget  reactiveLayout() {
+  Widget reactiveLayout() {
     var size = MediaQuery
         .of(context)
         .size;
@@ -152,15 +149,15 @@ class _MyHomePageState extends State<MyHomePage> {
     if ((width > height) && (width > 720)) //landscape
         {
       return Row(children: [
-        Expanded(flex: 1 , child:ToDoList()),
-        Expanded(flex: 2, child:DetailsPage())
+        Expanded(flex: 1, child: ToDoList()),
+        Expanded(flex: 2, child: DetailsPage())
       ]);
     }
     else //portrait mode
         {
-      if(selectedItem == null)
+      if (selectedItem == null)
         return ToDoList();
-      else{ //something is selected
+      else { //something is selected
         return DetailsPage();
       }
     }

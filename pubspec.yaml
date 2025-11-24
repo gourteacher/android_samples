@@ -94,3 +94,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  assets:
+    #4 spaces:
+    - assets/translations/en.json
+    - assets/translations/de.json
+    - assets/translations/fr.json
+    - assets/translations/ru.json

@@ -1,197 +1,243 @@
 import 'package:flutter/material.dart';
-import 'ToDoDAO.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'ToDoItem.dart';
+
+import 'AppLocalizations.dart';
 import 'database.dart';
+import 'ToDoDAO.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+//StatelessWidget means no changes
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  static void setLocale(BuildContext context, Locale newLocale) async {
+    _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
+    state?.changeLanguage(newLocale);
+  }
+
+  @override
+  State<StatefulWidget> createState() {
+    return  _MyAppState(); //subclass of State<StatefulWidget>
+  }
+
+} //close of MyApp
+
+class _MyAppState extends State<StatefulWidget>
+{
+
+  var _locale = const Locale("en", "EN"); //Language when start the applicatoin    ca for canada, us for us, GB for england
+
+  void changeLanguage(Locale newLocale){
+    setState(() {
+      _locale = newLocale;  //set the new language for your app, setState redraws the GUI
+    });
+  }
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
+    //declare what languages are supported:
     return MaterialApp(
-      title: 'Samples',
+      supportedLocales:const [
+        Locale('en' , 'CA'),
+        Locale('de' , 'DE'),
+        Locale('fr', "FR"),
+        Locale('ru', 'RU')
+      ], //list all languages you support in your app
+
+      localizationsDelegates:  const[
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate
+      ],
+      locale:_locale, //start with "en" "ca"
+      title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            secondary: Colors.green,
-            primary: Colors.red),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      debugShowCheckedModeBanner: false,
-      home: MyHomePage(title: 'Tablet and Phone Layout TESTING'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
   final String title;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+//  _ means private
 class _MyHomePageState extends State<MyHomePage> {
-  List<ToDoItem> todoList = <ToDoItem>[];
-  late TextEditingController _inputController;
-  late ToDoDAO dao;
-  ToDoItem? selectedItem = null;
+  /// This controls the "add" text field
+  late TextEditingController _controller; //late - Constructor in initState()
 
-  @override //same as in java
+  /// THis accesses the database for insert and delete
+  late ToDoDAO myDAO; //initialized in initState()
+
+  /// This holds what item was selected
+  ToDoItem? selectedItem  = null;
+
+  //add items from the database first:
+  List<ToDoItem> items = [];
+
+
+  /// This is where variables are initialized
+  @override
   void initState() {
     super.initState(); //call the parent initState()
-    _inputController = TextEditingController();
-
-    $FloorToDoDatabase
-        .databaseBuilder('todo_database.db')
-        .build()
+    _controller = TextEditingController(); //our late constructor
+    //var database = await
+    //open the database:
+    $FloorToDoDatabase.databaseBuilder('todo_database.db').build()
         .then((database) async {
-      dao = database.toDoDAO;
+
+      myDAO = database.toDoDAO;
       //get Items from database:
-      var it = await dao.getAllItems();
-      setState(() {
-        todoList = it; //Future<> , asynchronous
+      var it = await myDAO.getAllItems();
+
+      setState(()  {
+        items = it;
       });
-    });
+
+    } ) ;
   }
 
+  /// This is where variables are returned to memory
   @override
-  void dispose() {
+  void dispose()
+  {
     super.dispose();
-    _inputController.dispose();
+    _controller.dispose();    // clean up memory
   }
 
   @override
   Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
     return Scaffold(
-        appBar: AppBar(
-            backgroundColor: Theme
-                .of(context)
-                .colorScheme
-                .inversePrimary,
-            title: Text(widget.title)),
-        body: reactiveLayout(),
-        floatingActionButton: FloatingActionButton(
-            onPressed: addItem,
-            tooltip: 'Add Item',
-            child: const Icon(Icons.add)));
+      appBar: AppBar(
+        actions: [
+          OutlinedButton(child:Text("English") , onPressed: (){  MyApp.setLocale(context, Locale('en',"EN") );} ),
+          OutlinedButton(child:Text("German")  , onPressed: (){  MyApp.setLocale(context, Locale('de',"DE") );} ),
+          OutlinedButton(child:Text("French")  , onPressed: (){  MyApp.setLocale(context, Locale('fr',"FR") );} ),
+        ],
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
+      ),
+      body: reactiveLayout(),
+    );
   }
 
-  void addItem() {
-    if (_inputController.text.isNotEmpty) {
-      setState(() {
-        var newItem = ToDoItem(ToDoItem.ID++, _inputController.text);
-        todoList.add(newItem);
-        dao.insertItem(newItem);
-        _inputController.clear();
-      });
-    } else {
-      var snackBar = SnackBar(content: Text('Input field is required'));
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
-  }
-
-  Widget reactiveLayout() {
+  Widget  reactiveLayout() {
     var size = MediaQuery
-        .sizeOf(context);
+        .of(context)
+        .size;
     var height = size.height;
     var width = size.width;
 
-    if ((width > height) && (width > 720)) //landscape// {
-     {
+    if ((width > height) && (width > 720)) //landscape
+        {
       return Row(children: [
-        Expanded(flex: 1, child: toDoList()),
-        Expanded(flex: 2, child: detailsPage())
+        Expanded(flex: 1 , child:ToDoList()),
+        Expanded(flex: 2, child:DetailsPage())
       ]);
-  }
-
-  else //portrait mode
-  {
-    if (selectedItem == null)
-      return toDoList();
-    else { //something is selected
-      return detailsPage();
+    }
+    else //portrait mode
+        {
+      if(selectedItem == null)
+        return ToDoList();
+      else{ //something is selected
+        return DetailsPage();
+      }
     }
   }
-}
 
-Widget detailsPage() {
-  TextStyle mystyle = TextStyle(fontSize: 40.0);
+  Widget DetailsPage() {
+    TextStyle st = TextStyle(fontSize: 40.0);
 
-  return Column(children: [
+    return Column(children:[
 
-    if(selectedItem == null)
-      Text("Please select something from the list", style: mystyle)
-    else
-      Text("You selected:" + selectedItem!.todoItem, style: mystyle)
-    //
-    ,
-    ElevatedButton(child: Text("Ok"), onPressed: () {
-      //update GUI:
-      setState(() {
-        selectedItem = null; //clear the selection
-      });
-    })
+      if(selectedItem == null)
+        Text(   AppLocalizations.of(context)!.translate( "SelectSomething")!, style:st)
+      else
+        Text("You selected:" + selectedItem!.todoItem, style:st) //! means non-null assertion
+      ,
+      ElevatedButton(child:Text("Ok"), onPressed: () {
+        //update GUI:
+        setState(() {
+          selectedItem = null; //clear the selection
+        });
 
-  ]);
-}
 
-Widget toDoList() {
-  return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Row(children: [
+      })
+
+    ]);
+
+  }
+
+  Widget ToDoList(){
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Row(children: [
+            Flexible(child:
+            TextField(controller: _controller,
+              decoration: InputDecoration(
+                hintText:AppLocalizations.of(context)!.translate("TypeHere")!,
+                labelText: AppLocalizations.of(context)!.translate("PutYourNameHere")!,
+                border: OutlineInputBorder(),
+              ),
+            )),
+
+            ElevatedButton(onPressed: () {
+              //what was typed is:
+              var input = _controller.value.text;
+              //generate UNIQUE ids
+              var todoItem = ToDoItem(ToDoItem.ID++, input);
+              myDAO.insertItem(todoItem);
+
+              setState(() { //redraw the GUI
+
+                items.add(todoItem); //add the item to the LIST
+
+                _controller.text = ""; //reset the textField
+              });
+            }, //Lambda, or anonymous function
+              child: Text( AppLocalizations.of(context)!.translate('Add')! ),)
+          ],),
           Flexible(child:
-          TextField(controller: _inputController,
-            decoration: InputDecoration(
-              hintText: "Type a task here",
-              labelText: "Add a task",
-              border: OutlineInputBorder(),
-            ),
-          )),
+          ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (ctx, rowNum) {
+                return
+                  GestureDetector(
+                      onTap:() {
+                        setState(() {//redraw the GUI:
+                          selectedItem = items[rowNum];
+                        });
 
-          ElevatedButton(onPressed: () {
-            //what was typed is:
-            var input = _inputController.value.text;
-            //generate UNIQUE ids
-            var todoItem = ToDoItem(ToDoItem.ID++, input);
-            dao.insertItem(todoItem);
-
-            setState(() { //redraw the GUI
-
-              todoList.add(todoItem); //add the item to the LIST
-
-              _inputController.text = ""; //reset the textField
-            });
-          }, //Lambda, or anonymous function
-            child: Text("Add ToDO"),)
-        ],),
-        Flexible(child:
-        ListView.builder(
-            itemCount: todoList.length,
-            itemBuilder: (ctx, rowNum) {
-              return
-                GestureDetector(
-                    onTap: () {
-                      setState(() { //redraw the GUI:
-                        selectedItem = todoList[rowNum];
-                      });
-                    },
-                    child:
-                    Text("Item $rowNum = ${todoList[rowNum].todoItem }",
-                      style: TextStyle(fontSize: 30.0),));
-            }))
-      ],
-    ),
-  );
-} //end of reactiveLayout()
-
+                      },
+                      child:
+                      Text("Item $rowNum = ${items[rowNum].todoItem }",
+                        style: TextStyle(fontSize: 30.0),));
+              }))
+        ],
+      ),
+    );
+  }//end of reactiveLayout()
 }
